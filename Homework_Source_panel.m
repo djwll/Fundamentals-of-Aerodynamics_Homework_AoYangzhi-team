@@ -157,9 +157,15 @@ Ans
 vpa(Ans,4)
 
 %% 八块panel进行循环计算,并加入Result计算
-
+syms s ;
+Q = [90/180*pi,45/180*pi,0*pi,315/180*pi,270/180*pi,225/180*pi,180/180*pi,135/180*pi];
+Polar_x = [-0.9239,-0.6533,0,0.6533,0.9239,0.6533,0,-0.6533];
+Polar_y = [0,0.6533,0.9239,0.6533,0,-0.6533,-0.9239,-0.6533];
+Ans = [];
+Circle_x = [-0.9239,-0.9239,-0.3827,0.3827,0.9239,0.9239,0.3827,-0.3827];
+Circle_y = [-0.3827,0.3827,0.9239,0.9239,0.3827,-0.3827,-0.9239,-0.9239];
 clc
-All_Metric = zeros(8)
+All_Metric = zeros(8);
 for i = 1:1:8
     for j = 1:1:8 
         A = -( Polar_x(i)-Circle_x(j) )*cos(Q(j))-(Polar_y(i)-Circle_y(j))*sin(Q(j));
@@ -178,12 +184,66 @@ for i = 1:1:8
         end
     end
     Ans;
-    vpa(Ans,4)
     Ans = [];
-    i
 end 
 All_Metric
 
-Result = inv(All_Metric)*[sin(180/180*pi);sin(135/180*pi);sin(90/180*pi);...
-    sin(45/180*pi);sin(0/180*pi);sin(315/180*pi);sin(270/180*pi);sin(225/180*pi);]
+Result = -inv(All_Metric)*[cos(180/180*pi);cos(135/180*pi);cos(90/180*pi);...
+    cos(45/180*pi);cos(0/180*pi);cos(315/180*pi);cos(270/180*pi);cos(225/180*pi);]
+
+%% 使用圆的坐标进行书写
+clc
+syms s;
+Circle_x = [];
+Circle_y = [];
+Polar_x = [];
+Polar_y = [];
+
+%计算Circle_x
+for Angle = 9*pi/8:-pi/4: -2*pi + 9*pi/8
+    Circle_x(end +1) = cos(Angle);
+    Circle_y(end +1) = sin(Angle);
+end
+for i = 1:1:8
+    if i == 8
+        Polar_x(end +1) = ( Circle_x(8) + Circle_x(1) )/2;
+        Polar_y(end +1) = ( Circle_y(8) + Circle_y(1) )/2;
+    else
+        Polar_x(end +1) = ( Circle_x(i) + Circle_x(i+1) )/2;
+        Polar_y(end +1) = ( Circle_y(i) + Circle_y(i+1) )/2;
+    end
+end
+vpa(Circle_x,5)
+vpa(Circle_y,5)
+vpa(Polar_x,5)
+vpa(Polar_y,5)
+
+% 而后与之前的代码一致
+Q = [90/180*pi,45/180*pi,0*pi,315/180*pi,270/180*pi,225/180*pi,180/180*pi,135/180*pi];
+Ans = [];
+All_Metric = zeros(8);
+for i = 1:1:8
+    for j = 1:1:8 
+        A = -( Polar_x(i)-Circle_x(j) )*cos(Q(j))-(Polar_y(i)-Circle_y(j))*sin(Q(j));
+        B = ( Polar_x(i)-Circle_x(j) )^2 + (Polar_y(i) - Circle_y(j))^2;
+        C = sin(Q(i)-Q(j));
+        D = (Polar_y(i)-Circle_y(j))*cos(Q(i))-(Polar_x(i)-Circle_x(j))*sin(Q(i));
+        E = (B-A^2)^0.5;
+        sj = 0.7654;
+        I = (C*s+D)/(s^2 + 2*A*s+B);   
+        IS = int(I,s,0,sj);
+        Ans(end + 1) = IS;
+        if C ==0
+        All_Metric(i,j) = pi;
+        else 
+        All_Metric(i,j) = Ans(end);
+        end
+    end
+    Ans;
+    Ans = [];
+end 
+All_Metric
+
+Result = -inv(All_Metric)*[cos(180/180*pi);cos(135/180*pi);cos(90/180*pi);...
+    cos(45/180*pi);cos(0/180*pi);cos(315/180*pi);cos(270/180*pi);cos(225/180*pi);]
 
