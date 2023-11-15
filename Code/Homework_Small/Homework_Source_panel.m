@@ -192,19 +192,19 @@ Result = -inv(All_Metric)*[cos(180/180*pi);cos(135/180*pi);cos(90/180*pi);...
     cos(45/180*pi);cos(0/180*pi);cos(315/180*pi);cos(270/180*pi);cos(225/180*pi);]
 
 %% 使用圆的坐标进行书写
-clc
 syms s;
 Circle_x = [];
 Circle_y = [];
 Polar_x = [];
 Polar_y = [];
-
+Q =[];
 %计算Circle_x
 for Angle = 9*pi/8:-pi/4: -2*pi + 9*pi/8
     Circle_x(end +1) = cos(Angle);
     Circle_y(end +1) = sin(Angle);
 end
 for i = 1:1:8
+    Q(end+1) = atan((y(i+1)-y(i))/(x(i+1)-x(i)));
     if i == 8
         Polar_x(end +1) = ( Circle_x(8) + Circle_x(1) )/2;
         Polar_y(end +1) = ( Circle_y(8) + Circle_y(1) )/2;
@@ -246,4 +246,45 @@ All_Metric
 
 Result = -inv(All_Metric)*[cos(180/180*pi);cos(135/180*pi);cos(90/180*pi);...
     cos(45/180*pi);cos(0/180*pi);cos(315/180*pi);cos(270/180*pi);cos(225/180*pi);]
+%% 使用解析方法求解
+clc
+theta = [0:0.1:2*pi];
+y = 1-4*sin(theta).^2;
+plot(theta,y)
+hold on
+% 使用数值方法求解
+clc
+syms s;
+Circle_x = [];
+Circle_y = [];
+Polar_x = [];
+Polar_y = [];
 
+%计算Circle_x
+for Angle = 9*pi/8:-pi/4: -2*pi + 9*pi/8
+    Circle_x(end +1) = cos(Angle);
+    Circle_y(end +1) = sin(Angle);
+end
+for i = 1:1:8
+    if i == 8
+        Polar_x(end +1) = ( Circle_x(8) + Circle_x(1) )/2;
+        Polar_y(end +1) = ( Circle_y(8) + Circle_y(1) )/2;
+    else
+        Polar_x(end +1) = ( Circle_x(i) + Circle_x(i+1) )/2;
+        Polar_y(end +1) = ( Circle_y(i) + Circle_y(i+1) )/2;
+    end
+end
+sum = 0;
+V_num=[];
+theta = [0:pi/4:2*pi]
+for i = 1:1:8
+    for j = 1:1:8
+        sum = sum + Result(j)*All_Metric(i,j);
+    end
+    V_num(end+1) = sum + sin(Q(i));
+    sum = 0;
+end 
+V_num(end + 1) = V_num(1);
+cp = 1-(V_num).^2
+scatter(theta,cp)
+hold off

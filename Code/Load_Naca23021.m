@@ -55,9 +55,11 @@ hold off
 
 %% 从txt文件中读取x，y
 clc
-a = load("NACA23021.dat")
+a = load("NACA23021.txt")
 x = a(1:18,1)
 y = a(1:18,2)
 figure(1)
 plot(x,y,'-o')
 axis([0 1 -0.2 0.2])
+
+%% 
