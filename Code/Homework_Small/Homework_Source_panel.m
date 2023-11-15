@@ -249,7 +249,7 @@ Result = -inv(All_Metric)*[cos(180/180*pi);cos(135/180*pi);cos(90/180*pi);...
 %% 使用解析方法求解
 clc
 theta = [0:0.1:2*pi];
-y = 1-4*sin(theta).^2;
+y = 1-4*sin(theta - pi/2).^2;
 plot(theta,y)
 hold on
 % 使用数值方法求解
@@ -276,7 +276,6 @@ for i = 1:1:8
 end
 sum = 0;
 V_num=[];
-theta = [0:pi/4:2*pi]
 for i = 1:1:8
     for j = 1:1:8
         sum = sum + Result(j)*All_Metric(i,j);
@@ -284,7 +283,8 @@ for i = 1:1:8
     V_num(end+1) = sum + sin(Q(i));
     sum = 0;
 end 
+q=[pi,3/4*pi,pi/2,pi/4,0,7/4*pi,3/2*pi,5/4*pi,pi]
 V_num(end + 1) = V_num(1);
 cp = 1-(V_num).^2
-scatter(theta,cp)
+scatter(q,cp)
 hold off

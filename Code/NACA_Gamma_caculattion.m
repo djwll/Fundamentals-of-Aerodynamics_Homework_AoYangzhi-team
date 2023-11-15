@@ -10,7 +10,7 @@ Q = []
 for i = 1:1:length(x)-1
     x_control(end + 1)=(x(i)+x(i+1))/2;
     y_control(end + 1)=(y(i)+y(i+1))/2;
-    Q(end+1) = atan((y(i+1)-y(i))/(x(i+1)-x(i)));
+    Q(end +1) = atan2(y_control(i),x_control(i))-pi/2;
 end
 
 k1 = 15.957;
@@ -34,7 +34,9 @@ hold off
 clc
 syms s
 Ans = [];
-a = 8;
+V_num = [];
+a = 34;
+sum = 0;
 All_Metric = zeros(a);
 for i = 1:1:a
     for j = 1:1:a
@@ -50,7 +52,24 @@ for i = 1:1:a
         Ans(end + 1) = IS;
         All_Metric(i,j) = Ans(end);
     end
+    i
     Ans
     Ans = [];
 end 
+%% 结果计算
 All_Metric
+V_num = [];
+
+save afile.txt -ascii All_Metric;
+Result = -inv(All_Metric)*cos(Q(1:1:a))'%再次简化
+for i = 1:1:a
+    for j = 1:1:a
+        sum = sum + Result(j)*All_Metric(i,j);
+    end
+    V_num(end+1) = sum + sin(Q(i));
+    sum = 0;
+end 
+length(Q(1:1:a))
+length(V_num)
+cp = 1-(V_num).^2;
+scatter(Q(1:1:a),cp)
