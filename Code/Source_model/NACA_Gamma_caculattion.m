@@ -13,19 +13,33 @@ for i = 1:1:length(x)-1
     Q(end +1) = atan2(y_control(i),x_control(i))-pi/2;
 end
 
+%% NACA23021生成
 k1 = 15.957;
 m = 0.2025;
+c = 1.5;
 x1 = [0:0.01:m];
 x2 = [m:0.01:1];
+t = 0.21;%相对厚度
 y1 = k1/6*(x1.^3-3*m*x1.^2+m^2*(3-m)*x1);
+dy1 = k1/6*(3*x1.^2-6*m*x1+m^2*(3-m))
 y2 = k1*m^3/6*(1-x2);
+dy2 = -k1*m^3/6
+yt1 = t/0.2*c*(0.2969*(x1/c).^0.5 - 0.126*(x1/c)-0.3516*(x1/c).^2 + 0.2843*(x1/c).^3 ...
+    -0.1036*(x1/c).^4);
+yt2 = t/0.2*c*(0.2969*(x2/c).^0.5 - 0.126*(x2/c)-0.3516*(x2/c).^2 + 0.2843*(x2/c).^3 ...
+    -0.1036*(x2/c).^4);
+xu1 = x1 - yt1.*sin(atan(dy1));
+xl1 = x1 + yt1.*sin(atan(dy1));
+xu2 = x2 - yt2.*sin(atan(dy2));
+xl2 = x2 + yt2.*sin(atan(dy2));
+yu1 = y1 + yt1.*cos(atan(dy1));
+yu2 = y2 + yt2.*cos(atan(dy2));
+yl1 = y1 - yt1.*cos(atan(dy1));
+yl2 = y2 - yt2.*cos(atan(dy2));
 
-plot(x1,y1)
+plot(xu1,yu1,xu2,yu2)
 hold on 
-plot(x2,y2)
-hold on 
-plot(x,y,'-o')
-axis([0 1 -0.2 0.2])
+plot(xl1,yl1,xl2,yl2)
 hold on 
 scatter(x_control,y_control,'red','*')
 hold off
@@ -42,8 +56,8 @@ for i = 1:1:a
     for j = 1:1:a
         A = -( x_control(i)-x(j) )*cos(Q(j))-(y_control(i)-y(j))*sin(Q(j));
         B = ( x_control(i)-x(j) )^2 + (y_control(i) - y(j))^2;
-        C = sin(Q(i)-Q(j));
-        D = (y_control(i)-y(j))*cos(Q(i))-(x_control(i)-y(j))*sin(Q(i));
+        C = -1;
+        D = (x_control(i)-x(j))*cos(Q(i))+(y_control(i)-y(j))*sin(Q(i));
         sj = ((x(j+1)-x(j))^2 +(y(j+1)-y(j))^2 )^0.5;
         I = (C*s+D)/(s^2 + 2*A*s+B);   
         IS = int(I,s,0,sj);
@@ -59,9 +73,8 @@ end
 All_Metric
 V_num = [];
 
-
+save afile.txt -ascii All_Metric;
 Result = -inv(All_Metric)*cos(Q(1:1:a))'%再次简化
-save Result.txt -ascii Result;
 for i = 1:1:a
     for j = 1:1:a
         sum = sum + Result(j)*All_Metric(i,j);
@@ -71,10 +84,5 @@ for i = 1:1:a
 end 
 length(Q(1:1:a))
 length(V_num)
-cp
 cp = 1-(V_num).^2;
-figure(1)
-scatter(Q,cp)
-figure(2)
-scatter(x_control,cp)
-axis([0 1 -1 1])
+scatter(Q(1:1:a),cp)

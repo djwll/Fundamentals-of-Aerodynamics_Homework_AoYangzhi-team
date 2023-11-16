@@ -35,20 +35,20 @@ clc
 syms s
 Ans = [];
 V_num = [];
-a = 34;
+a = 2; 
 sum = 0;
 All_Metric = zeros(a);
-for i = 1:1:a
-    for j = 1:1:a
+for i = 1:1:34 
+    for j = 1:1:34
         A = -( x_control(i)-x(j) )*cos(Q(j))-(y_control(i)-y(j))*sin(Q(j));
         B = ( x_control(i)-x(j) )^2 + (y_control(i) - y(j))^2;
-        C = 1;
-        D = (x_control(i)-x(j))*cos(Q(i))+(y_control(i)-y(j))*sin(Q(i));
-        E = (B-A^2)^0.5;
+        %C = 1;
+        %D = (x_control(i)-x(j))*cos(Q(i))+(y_control(i)-y(j))*sin(Q(i));
+        C = sin(Q(i)-Q(j));
+        D = (y_control(i)-y(j))*cos(Q(i))-(x_control(i)-x(j))*sin(Q(i));
         sj = ((x(j+1)-x(j))^2 +(y(j+1)-y(j))^2 )^0.5;
         I = (C*s+D)/(s^2 + 2*A*s+B);   
         IS = int(I,s,0,sj);
-        vpa(IS,5);
         Ans(end + 1) = IS;
         All_Metric(i,j) = Ans(end);
     end
@@ -56,20 +56,27 @@ for i = 1:1:a
     Ans
     Ans = [];
 end 
-%% 结果计算
 All_Metric
-V_num = [];
 
-save afile.txt -ascii All_Metric;
-Result = -inv(All_Metric)*cos(Q(1:1:a))'%再次简化
-for i = 1:1:a
-    for j = 1:1:a
+%% 结果计算
+a = 18;
+Result =  -inv(All_Metric)*cos(Q(1:1:a))'%再次简化,该种方法，可以直接从γ获取速度
+cp = 1-Result.^2
+cp
+figure(2)
+scatter(x_control(1:1:a),cp)
+
+%% Source_panel
+V_num = [];
+Result =  -inv(All_Metric)*cos(Q(1:1:34))'
+save Result_First_try.txt -ascii Result
+for i = 1:1:34
+    for j = 1:1:34
         sum = sum + Result(j)*All_Metric(i,j);
     end
     V_num(end+1) = sum + sin(Q(i));
     sum = 0;
 end 
-length(Q(1:1:a))
-length(V_num)
 cp = 1-(V_num).^2;
-scatter(Q(1:1:a),cp)
+length(cp)
+scatter(x_control,cp)

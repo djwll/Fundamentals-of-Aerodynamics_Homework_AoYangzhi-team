@@ -35,10 +35,9 @@ for i = 1:1:8
         C = sin(Q(i)-Q(j));
         D = (Polar_y(i)-Circle_y(j))*cos(Q(i))-(Polar_x(i)-Circle_x(j))*sin(Q(i));
         E = (B-A^2)^0.5;
-        sj = 0.7654;
-        I = (C*s+D)/(s^2 + 2*A*s+B);   
-        IS = int(I,s,0,sj);
-        Ans(end + 1) = IS;
+        sj = ((Circle_x(j+1)-Circle_x(j))^2 +(Circle_y(j+1)-Circle_y(j))^2 )^0.5;;
+        J = C/2*log((sj^2+2*A*sj+B)/B)+(D-A*C)/E*(atan((sj+A)/E) - atan(A/E))
+        Ans(end + 1) = J;
         if C ==0
         All_Metric(i,j) = pi;
         else 
