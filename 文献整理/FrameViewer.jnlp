@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- href attribute contains relative path;
+     codebase attribute not specified -->
+<jnlp spec="1.0+" codebase="http://www.engapplets.vt.edu/fluids/vpm" href="FrameViewer.jnlp">
+    <information>
+        <title>FrameViewer</title>
+        <vendor>AOE</vendor>
+    </information>
+    <resources>
+        <!-- Application Resources -->
+        <j2se version="1.7+" />
+        <jar href=
+            "FrameViewer.jar" 
+             main="true" />
+    </resources>
+    <applet-desc 
+         name="FrameViewer"
+         main-class="FrameViewer"
+         width="300"
+         height="300">
+     </applet-desc>
+     <update check="background"/>
+</jnlp>
