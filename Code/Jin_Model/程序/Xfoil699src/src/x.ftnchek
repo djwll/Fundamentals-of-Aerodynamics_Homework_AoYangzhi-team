@@ -1,0 +1,15 @@
+ftnchek -common=1 -novice=4 -argument=2 -notruncation \
+-include=../plotlib \
+-include=../orrs \
+xfoil.f xpanel.f xoper.f xtcam.f xgdes.f xqdes.f xmdes.f \
+xsolve.f xbl.f xblsys.f xpol.f xplots.f xgeom.f xutils.f modify.f \
+blplot.f polplt.f aread.f naca.f spline.f plutil.f iopol.f \
+userio.f gui.f sort.f \
+dplot.f profil.f \
+../orrs/ntcalc.f \
+../orrs/oshai.f \
+../orrs/frplot.f \
+../plotlib/plt_base.f \
+../plotlib/plt_font.f \
+../plotlib/plt_color.f \
+../plotlib/plt_util.f

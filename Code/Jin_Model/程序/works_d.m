@@ -1,19 +1,42 @@
+clear;
+clc;
 
-a = load("./NACA/NACA23021_200.txt");
+NACA = '23021';
+nodes = '200';
+save_airfoil = '.txt';
+
+if exist('.txt')
+    delete('.txt');
+end
+
+fid = fopen('xfoil_input.txt','w');
+
+fprintf(fid,['NACA' NACA '\n']);
+fprintf(fid,'PPAR\n');
+fprintf(fid,['N' nodes '\n']);
+fprintf(fid,'\n\n');
+fprintf(fid,['PSAV' save_airfoil '\n']);
+
+fclose(fid);
+
+cmd = 'xfoil.exe < xfoil_input.txt';
+[status,result] = system(cmd);
+
+a = load('.txt');
 XB = flip(a(:,1));
 YB = flip(a(:,2));
-figure(3)
-plot(XB,YB)
-AoA = 1;
+AoA = 8;
 alpha = (AoA/180)*pi;
 numPan = length(XB)-1;
 Vinf = 1;
+rouf = 1.29;
 
 XC   = zeros(numPan,1);                                                     
 YC   = zeros(numPan,1);                                                     
 S    = zeros(numPan,1);                                                     
 phi = zeros(numPan,1);
 beta = zeros(numPan,1); 
+delta = zeros(numPan,1); 
 
 for i = 1:1:numPan                                                          
     XC(i)   = 0.5*(XB(i)+XB(i+1));                                          
@@ -23,6 +46,7 @@ for i = 1:1:numPan
     S(i)    = (dx^2 + dy^2)^0.5;                                           
 	phi(i) = atan2(dy,dx);
     beta(i) = phi(i) + pi/2;
+    delta(i) = phi(i) - pi/2;
 end
                                                                                                                    
 K = zeros(numPan,numPan);                                                   
@@ -40,7 +64,8 @@ for i = 1:1:numPan
             E  = sqrt(B-A^2);                                               
             if (~isreal(E))
                 E = 0;
-            end 
+            end
+                   
             K(i,j) = 0.5*Cn*log((S(j)^2+2*A*S(j)+B)/B) + ((Dn-A*Cn)/E)*(atan2((S(j)+A),E)-atan2(A,E));                                               
             L(i,j) = 0.5*Ct*log((S(j)^2+2*A*S(j)+B)/B) + ((Dt-A*Ct)/E)*(atan2((S(j)+A),E)-atan2(A,E));                                        
         end
@@ -56,7 +81,7 @@ end
 
 b = zeros(numPan,1);                                                        
 for i = 1:1:numPan                                                          
-    b(i) = -Vinf*2*pi*cos(beta(i)-alpha); %加入攻角计算                                        
+    b(i) = -Vinf*2*pi*cos(beta(i)-alpha);                                         
 end
 
 a(numPan,:)   = 0;                                                          
@@ -75,10 +100,33 @@ for i = 1:1:numPan
     end
     
     Vt(i) = Vinf*sin(beta(i)-alpha) + sum + gamma(i)/2;                       
-    Cp(i) = 1-(Vt(i)/Vinf)^2;                                              
+    Cp(i) = 1-(Vt(i)/Vinf)^2;
+    
 end
 
-figure(1)
-scatter(XC,Cp)
 figure(2)
-scatter(XC,Vt)
+scatter(XC,Cp)
+xlabel('x');
+ylabel('Cp');
+
+%%翼型压强积分
+
+FL1 = 0;
+dp = zeros(numPan,1);
+
+for i=1:1:numPan
+    dp(i) = Cp(i)*rouf*Vinf/2;
+    FL1 = FL1 + dp(i)*S(i)*cos(delta(i)-pi/2-alpha);
+end
+
+CL1 = FL1/(rouf*Vinf/2);
+
+%%茹科夫斯基
+
+FL2 = 0;
+
+for i=1:1:numPan
+    FL2 = FL2+rouf*Vinf*gamma(i)*S(i);
+end
+
+CL2 = FL2/(rouf*Vinf/2);

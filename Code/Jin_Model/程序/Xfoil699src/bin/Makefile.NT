@@ -1,0 +1,191 @@
+#*********************************************************
+# Win32 Makefile for XFOIL V6.96 programs
+# H.Youngren
+# M.Drela
+#*********************************************************
+
+
+#SHELL = sh
+BINDIR = .
+#INSTALLCMD = install -s
+
+
+PLTLIB  = ..\plotlib\libPlt.lib 
+#PLTLIB = ..\plotlib\libPltDP.lib 
+
+AR = lib  
+
+#### Link libs 
+LINKLIB = gdi32.lib user32.lib 
+
+###================================================
+###  Compaq Visual Fortran compiler and flags, install commands
+#FC = f77
+### Uncomment DP to make double-precision version
+#DP = /realsize:64
+#FFLAGS  = /Oxp $(DP) /threads
+#FLGOPT  = /Oxp $(DP) /threads
+
+#LFLAGS  = /libs:qwin /threads /link /NODEFAULTLIB:LIBC.LIB
+
+###================================================
+###  Intel Fortran compiler and flags, install commands
+#
+FC = ifort
+CC  = cl
+# Uncomment DP to make double-precision version
+#DP = /4R8
+# Debug Fortran
+#FFLAGS = /Od /Zi $(DP) /W0 /MT /4Yportlib 
+#FLGOPT = /Od /Zi $(DP) /W0 /MT /4Yportlib 
+### use flags for processor optimization G5 G6 G7 for PII,PIII,P4 architectures
+FFLAGS  = /O2 $(DP) /W0 /MT /4Yportlib /G6
+#FLGOPT  = /O3 $(DP) /W0 /MT /4Yportlib /G6
+### use flags for P4 processor optimization with older Pentium compatibility
+#FFLAGS  = /O2 $(DP) /W0 /MT /4Yportlib /G6 /QaxW 
+FLGOPT  = /O3 $(DP) /W0 /MT /4Yportlib /G6 /QaxW 
+
+#LINK32 = xilink.exe
+LFLAGS  = /MT /link /NODEFAULTLIB:LIBC.LIB
+
+###================================================
+
+PLTLIB = C:\Users\Guppy\lib\libPlt.lib
+
+
+SRC = ..\src
+OSRC = ..\orrs\src
+
+
+PROGS = xfoil.exe pplot.exe pxplot.exe
+
+XFOILOBJ  = xfoil.obj xpanel.obj xoper.obj xtcam.obj xgdes.obj xqdes.obj xmdes.obj \
+xsolve.obj xbl.obj xblsys.obj xpol.obj xplots.obj pntops.obj xgeom.obj xutils.obj modify.obj \
+blplot.obj polplt.obj aread.obj naca.obj spline.obj plutil.obj iopol.obj gui.obj sort.obj   \
+dplot.obj profil.obj
+
+XUTILOBJ  = userio.obj 
+
+PPLOTOBJ  = pplot.obj polplt.obj sort.obj iopol.obj gui.obj 
+PXPLOTOBJ = pxplot.obj plutil.obj gui.obj
+
+##----------------------------------------------------
+OSOBJ = frplot0.obj
+# Use this for individual TS-wave frequency plotting
+OSOBJ = frplot.obj ntcalc.obj osmap.obj
+
+##----------------------------------------------------
+#PLTOBJ = ../plotlib/libPlt.a 
+# Use this if you have a copy of the plotlib as a system library
+#PLTOBJ = -lPlt 
+# The extra location arg here is for Linux which places X libs in /usr/X11R6
+#PLTLIB = -L/usr/X11R6/lib -lX11
+
+
+all:	 $(PROGS)
+
+#install: 
+#	$(INSTALLCMD) $(PROGS) $(BINDIR)
+
+clean:
+	del *.obj
+	del $(PROGS)
+	del plot.ps
+
+
+# Make targets
+
+xfoil.exe: $(XFOILOBJ) $(XUTILOBJ) $(OSOBJ)
+	$(FC) /Fexfoil.exe $(XFOILOBJ) $(XUTILOBJ) $(OSOBJ) $(PLTLIB) $(LINKLIB) $(LFLAGS)
+pplot.exe: $(PPLOTOBJ) $(XUTILOBJ)
+	$(FC) /Fepplot.exe  $(PPLOTOBJ) $(XUTILOBJ) $(PLTLIB) $(LINKLIB) $(LFLAGS)
+pxplot.exe: $(PXPLOTOBJ) $(XUTILOBJ)
+	$(FC) /Fepxplot.exe  $(PXPLOTOBJ) $(XUTILOBJ) $(PLTLIB) $(LINKLIB) $(LFLAGS)
+
+
+xfoil.obj: $(SRC)\xfoil.f  $(SRC)\XFOIL.INC
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\xfoil.f
+xpanel.obj: $(SRC)\xpanel.f  $(SRC)\XFOIL.INC
+	$(FC) /c /I$(SRC) $(FLGOPT)  $(SRC)\xpanel.f
+xoper.obj: $(SRC)\xoper.f  $(SRC)\XFOIL.INC
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\xoper.f
+xsolve.obj: $(SRC)\xsolve.f  $(SRC)\XFOIL.INC
+	$(FC) /c /I$(SRC) $(FLGOPT)  $(SRC)\xsolve.f
+dplot.obj: $(SRC)\dplot.f  $(SRC)\XFOIL.INC
+	$(FC) -c /I$(SRC) $(FLGOPT)  $(SRC)\dplot.f
+xtcam.obj: $(SRC)\xtcam.f  $(SRC)\XFOIL.INC $(SRC)/XDES.INC
+	$(FC) -c /I$(SRC) $(FFLAGS)  $(SRC)\xtcam.f
+xgdes.obj: $(SRC)\xgdes.f  $(SRC)\XFOIL.INC $(SRC)\XDES.INC
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\xgdes.f
+xqdes.obj: $(SRC)\xqdes.f  $(SRC)\XFOIL.INC $(SRC)\XDES.INC
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\xqdes.f
+xmdes.obj: $(SRC)\xmdes.f  $(SRC)\XFOIL.INC $(SRC)\XDES.INC $(SRC)\CIRCLE.INC
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\xmdes.f
+xbl.obj:   $(SRC)\xbl.f    $(SRC)\XFOIL.INC $(SRC)\XBL.INC
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\xbl.f
+xblsys.obj: $(SRC)\xblsys.f                  $(SRC)\XBL.INC
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\xblsys.f
+xplots.obj: $(SRC)\xplots.f $(SRC)\XFOIL.INC
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\xplots.f
+pntops.obj: $(SRC)\pntops.f $(SRC)\XFOIL.INC $(SRC)\XDES.INC
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\pntops.f
+blplot.obj: $(SRC)\blplot.f $(SRC)\XFOIL.INC
+	$(FC) -c /I$(SRC) $(FFLAGS)  $(SRC)\blplot.f
+xpol.obj: $(SRC)\xpol.f     $(SRC)\XFOIL.INC
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\xpol.f
+xgeom.obj: $(SRC)\xgeom.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\xgeom.f
+xutils.obj: $(SRC)\xutils.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\xutils.f
+aread.obj: $(SRC)\aread.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\aread.f
+plutil.obj: $(SRC)\plutil.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\plutil.f
+userio.obj: $(SRC)\userio.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\userio.f
+spline.obj: $(SRC)\spline.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\spline.f
+iopol.obj: $(SRC)\iopol.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\iopol.f
+modify.obj: $(SRC)\modify.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\modify.f
+naca.obj: $(SRC)\naca.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\naca.f
+gui.obj: $(SRC)\gui.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\gui.f
+sort.obj: $(SRC)\sort.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\sort.f
+profil.obj: $(SRC)\profil.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\profil.f
+polplt.obj: $(SRC)\polplt.f 
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\polplt.f
+
+pplot.obj:  $(SRC)\pplot.f  $(SRC)\PPLOT.INC
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\pplot.f
+pxplot.obj: $(SRC)\pxplot.f $(SRC)\PXPLOT.INC
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\pxplot.f
+
+
+frplot0.obj: $(SRC)\frplot0.f
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\frplot0.f
+frplot.obj: $(SRC)\frplot.f
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\frplot.f
+ntcalc.obj: $(SRC)\ntcalc.f
+	$(FC) /c /I$(SRC) $(FFLAGS)  $(SRC)\ntcalc.f
+
+osmap.obj: $(OSRC)\osmap.f
+	$(FC) /c $(FFLAGS)  $(OSRC)\osmap.f
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,20 @@
+README for Windows XFOIL6.96
+
+HHY 5/2/06
+
+This version is compiled with the Intel Fortran compiler (ver 9.0) and should
+run on Windows systems (Win2K, XP).
+
+This version has the option (in OPER/VPLO) for N-growth display as a function 
+of frequency (from Orr-Sommerfeld stability calculation look-up tables).
+
+To enable these to work XFOIL will expect the lookup table file (osmap.dat) to 
+be located at "C:\xfoil\osmap.dat".  The suggested procedure for this is:
+
+mkdir C:\xfoil
+copy orrs\osmap.dat C:\xfoil
+
+where the orrs directory is located in the XFOIL directories with the source
+and other distribution files.
+
+

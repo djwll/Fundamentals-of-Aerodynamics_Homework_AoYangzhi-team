@@ -1,0 +1,20 @@
+C-----------------------------------------------------------------
+C      Custom solver for coupled viscous-inviscid Newton system:
+C
+C        A  |  |  .  |  |  .  |    d       R       S
+C        B  A  |  .  |  |  .  |    d       R       S
+C        |  B  A  .  |  |  .  |    d       R       S
+C        .  .  .  .  |  |  .  |    d   =   R - dRe S
+C        |  |  |  B  A  |  .  |    d       R       S
+C        |  Z  |  |  B  A  .  |    d       R       S
+C        .  .  .  .  .  .  .  |    d       R       S
+C        |  |  |  |  |  |  B  A    d       R       S
+C
+C       A, B, Z  3x3  blocks containing linearized BL equation coefficients
+C       |        3x1  vectors containing mass defect influence 
+C                     coefficients on Ue
+C       d        3x1  unknown vectors (Newton deltas for Ctau, Theta, m)
+C       R        3x1  residual vectors
+C       S        3x1  Re influence vectors
+C-----------------------------------------------------------------
+ 
