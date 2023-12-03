@@ -13,7 +13,7 @@ from COMPUTE_CIRCULATION import COMPUTE_CIRCULATION
 # %% KNOWNS
 
 Vinf  = 1                                                                       # Freestream velocity [arb]
-alpha = 0                                                                       # Angle of attack [deg]
+alpha =   30                                                                 # Angle of attack [deg]
 
 # %% CALCULATIONS
 

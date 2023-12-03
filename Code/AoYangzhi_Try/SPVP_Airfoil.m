@@ -1,69 +1,16 @@
-% SOURCE/VORTEX PANEL METHOD - SINGLE AIRFOIL
-% Written by: JoshTheEngineer
-% YouTube   : www.youtube.com/joshtheengineer
-% Website   : www.joshtheengineer.com
-% GitHub    : www.github.com/jte0419
-% Started   : 11/14/19
-% Updated   : 11/14/19 - Started code (using VP_Airfoil.m)
-%             11/15/19 - Works as expected
-%             05/02/20 - Updating comments
-% Notes     : This code is not optimized, but is instead written in such a way
-%             that it is easy to follow along with my YouTube video derivations
-% 
-% Functions Needed:
-% - XFOIL.m
-% - COMPUTE_IJ_SPM.m
-% - COMPUTE_KL_VPM.m
-% - STREAMLINE_SPM.m
-% - STREAMLINE_VPM.m
-% - COMPUTE_CIRCULATION.m
-% 
-% Programs Needed:
-% - xfoil.exe
-% 
-% Folder Needed:
-% - Airfoil_DAT_Selig: folder containing all Selig-format airfoils
-% 
-% References
-% - [1] : Panel Method Geometry
-%           Link: https://www.youtube.com/watch?v=kIqxbd937PI
-% - [2] : Normal Geometric Integral SPM, I(ij)
-%           Link: https://www.youtube.com/watch?v=76vPudNET6U
-% - [3] : Tangential Geometric Integral SPM, J(ij)
-%           Link: https://www.youtube.com/watch?v=JRHnOsueic8
-% - [4] : Streamline Geometric Integral SPM, Mx(pj) and My(pj)
-%           Link: https://www.youtube.com/watch?v=BnPZjGCatcg
-% - [5] : Solving the System of Equations (SPM)
-%           Link: https://www.youtube.com/watch?v=ep7vPzGYsbw
-% - [6] : Normal Geometric Integral VPM, K(ij)
-%           Link: https://www.youtube.com/watch?v=5lmIv2CUpoc
-% - [7] : Tangential Geometric Integral VPM, L(ij)
-%           Link: https://www.youtube.com/watch?v=IxWJzwIG_gY
-% - [8] : Streamline Geometric Integral VPM, Nx(pj) and Ny(pj)
-%           Link: https://www.youtube.com/watch?v=TBwBnW87hso
-% - [9] : Solving the System of Equations (VPM)
-%           Link: https://www.youtube.com/watch?v=j3ETHFBiYOg
-% - [10]: Source/Vortex Panel Method System of Equations
-%           Link: https://www.youtube.com/watch?v=bc_pkKGEypU
-% - [11]: How To Compute Circulation
-%           Link: https://www.youtube.com/watch?v=b8EnhiSjL3o
-% - [12]: UIUC Airfoil Database: Download All Files using Python
-%           Link: https://www.youtube.com/watch?v=nILo18DlqAo
-% - [13]: Python code for downloading Selig airfoil DAT files
-%           Link: http://www.joshtheengineer.com/2019/01/30/uiuc-airfoil-database-file-download/
+
 
 clear;
 clc;
-
-%% KNOWNS
+% KNOWNS
 
 % Flag to specify creating or loading airfoil
 flagAirfoil.XFoilCreate = 1;                                                % Create specified NACA airfoil in XFOIL
 flagAirfoil.XFoilLoad   = 0;                                                % Load Selig-format airfoil from directory
 
-% User-defined knowns
+% 定义来流速度，攻角和翼型种类
 Vinf = 1;                                                                   % Freestream velocity [] (just leave this at 1)
-AoA  = 10;                                                                   % Angle of attack [deg]
+AoA  = 0;                                                                   % Angle of attack [deg]
 NACA = '23021';                                                              % NACA airfoil to load [####(#)]
 
 % Plotting flags
@@ -84,9 +31,9 @@ PPAR.R  = '1';                                                              % "R
 PPAR.XT = '1 1';                                                            % "Top side refined area x/c limits"
 PPAR.XB = '1 1';                                                            % "Bottom side refined area x/c limits"
 
-% Call XFOIL function to obtain the following:
-% - Airfoil coordinates
-% - Pressure coefficient along airfoil surface
+% 使用Xfoil获取相关的准确值
+% -翼型的坐标
+% -沿表面的压力系数
 % - Lift, drag, and moment coefficients
 [xFoilResults,success] = XFOIL(NACA,PPAR,AoA,flagAirfoil);                  % Get XFOIL results for prescribed airfoil
 if (success == 0)                                                           % If user canceled airfoil dialog box

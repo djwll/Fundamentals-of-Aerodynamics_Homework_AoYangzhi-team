@@ -1,4 +1,4 @@
-%% Load DATA FILE : AIRFOIL
+%% 导入XFOIL的NACA23021的数据
 saveFLnmAF = 'Save_Airfoil_160.txt';
 fidAirfoil = fopen(saveFLnmAF);
 
@@ -26,6 +26,8 @@ XB_U = XB(YB>=0);
 XB_L = XB(YB<0);
 YB_U = YB(YB>=0);
 YB_L = YB(YB<0);
+
+
 Cp_U = Cp_0(YB>=0);
 Cp_L = Cp_0(YB<0);
 X_U = X_0(YB>=0);
@@ -35,7 +37,7 @@ figure(1);
 cla;hold on ; grid off;
 set(gcf,'color','White');
 set(gca,'Fontsize',12);
-plot(XB_U,YB_U,'b.-');
+plot(XB_U,YB_U,'r.-');
 plot(XB_L,YB_L,'r.-');
 xlabel('X Coordinate');
 ylabel('Y Coordinate');
