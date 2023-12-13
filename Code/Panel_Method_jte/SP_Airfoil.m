@@ -50,7 +50,7 @@ flagAirfoil.XFoilLoad   = 0;                                                % Lo
 
 % User-defined knowns
 Vinf = 1;                                                                   % Freestream velocity []
-AoA  = 0;                                                                   % Angle of attack [deg]
+AoA  = 10;                                                                   % Angle of attack [deg]
 NACA = '2412';                                                              % NACA airfoil to load [####]
 
 % Convert angle of attack to radians

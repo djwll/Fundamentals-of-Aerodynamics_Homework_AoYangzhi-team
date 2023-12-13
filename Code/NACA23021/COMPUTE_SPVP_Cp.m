@@ -1,60 +1,10 @@
-
-% 使用Xfoil导入数据
-
-
-NACA = '23021';
-nodes = '200';
-AoA = '15';
-save_airfoil = 'airfoil.txt';
-save_Cp = 'Cp.txt';
-if exist(save_airfoil,'file')
-    delete(save_airfoil);
-end
-if exist(save_Cp,'file')
-    delete(save_Cp);
-end
-
-fid = fopen('xfoil_input.txt','w');
-
-fprintf(fid,['NACA ' NACA '\n']);
-fprintf(fid,'PPAR\n');
-fprintf(fid,['N ' nodes '\n']);
-fprintf(fid,'\n\n');
-fprintf(fid,['PSAV ' save_airfoil '\n']);
-
-%load Xfoil Cp
-fprintf(fid,'OPER\n');
-fprintf(fid,['Alfa ' AoA '\n']);
-fprintf(fid,['CPWR ' save_Cp]);
-
-
-fclose(fid);
-
-cmd = 'xfoil.exe < xfoil_input.txt';
-[status,result] = system(cmd);
-
-%转化为自己的数据
-a = load(save_airfoil);
-saveFLnmCP = save_Cp;
-fidCp = fopen(saveFLnmCP);
-
-dataBuffer = textscan(fidCp,'%f %f %f','CollectOutput',3, ...
-    'Delimiter','','HeaderLines',3);
-fclose(fidCp);
-
-X_0 = dataBuffer{1,1}(:,1);
-Y_0 = dataBuffer{1,1}(:,2);
-Cp_0 = dataBuffer{1,1}(:,3);
-
-XB = flip(a(:,1));
-YB = flip(a(:,2));
-
-%% 进行相关计算
+function [Cp,XC] = COMPUTE_SPVP_Cp(X_0,Y_0,Cp_0,XB,YB,angle_input)
+% 进行相关计算
 % 边界点和板子数量
 numPts = length(XB);                                                        
 numPan = numPts - 1; 
-AoA = 15;
 Vinf = 1;
+AoA = angle_input;
 
 
 %初始化相关变量
@@ -102,12 +52,10 @@ for i = 1:1:numPan                                                          % Lo
     end
 end
 
-% Right column of A matrix
 for i = 1:1:numPan                                                          % Loop over all i panels (rows)
     A(i,numPan+1) = -sum(K(i,:));                                           % Add gamma term to right-most column of A matrix
 end
 
-% Bottom row of A matrix (Kutta condition)
 for j = 1:1:numPan                                                          % Loop over all j panels (columns)
     A(numPan+1,j) = (J(1,j) + J(numPan,j));                                 % Source contribution of Kutta condition equation
 end
@@ -131,7 +79,7 @@ gamma  = resArr(end);
 
 %计算速度和压力系数
 Vt = zeros(numPan,1);                                                       % Initialize tangential velocity
-Cp = zeros(numPan,1);
+Cp = zeros(numPan,1);                                                       % Initialize pressure coefficient
 for i = 1:1:numPan
     term1 = Vinf*sin(beta(i));                                              % Uniform flow term
     term2 = (1/(2*pi))*sum(lambda.*J(i,:)');                                % Source panel terms when j is not equal to i
@@ -139,44 +87,6 @@ for i = 1:1:numPan
     term4 = -(gamma/(2*pi))*sum(L(i,:));                                    
     
     Vt(i) = term1 + term2 + term3 + term4;                                  
-    Cp(i) = 1-(Vt(i)/Vinf)^2;
-    
+    Cp(i) = 1-(Vt(i)/Vinf)^2;                                               
 end
-
-%% 分别使用压强法和茹科夫斯基定理计算升力系数
-%压强积分法
-CN=-Cp.*S.*sin(beta);
-CA=-Cp.*S.*cos(beta);
-CL_Interal = sum(CN.*cosd(AoA)) - sum(CA.*sind(AoA));  
-CL_Ku = sum(gamma.*S)*2;
-CM = sum(Cp.*(XC).*S.*cos(phi));
-fprintf('\t压强法升力系数 : %2.4f\n',CL_Interal); 
-fprintf('\t茹科夫斯基法 : %2.4f\n',CL_Ku); 
-fprintf('\tLE力矩 : %2.4f\n',CM);  
-
-%% 验证上下表面质点同时到达后缘
-midIndX = floor(length(Cp_0)/2);                                    
-length(S)
-length(Vt)
-Tu = S(1:midIndX)./-Vt(1:midIndX);
-Tl = S(midIndX+1:end)./Vt(midIndX+1:end);
-sum(Tu)
-sum(Tl)
-
-%% Cp 计算
-figure(3);                                                              
-cla;hold on ; grid on;
-set(gcf,'color','White');
-set(gca,'Fontsize',12);                                             
-midIndX = floor(length(Cp_0)/2);                                    
-midIndS = floor(length(Cp)/2);                                          
-pXu = plot(X_0(1:midIndX),-Cp_0(1:midIndX),'b-','LineWidth',2);   
-pXl = plot(X_0(midIndX+1:end),-Cp_0(midIndX+1:end),'r-',...        
-                    'LineWidth',2);
-pVl = plot(XC(1:midIndS),-Cp(1:midIndS),'ks','MarkerFaceColor','r');     
-pVu = plot(XC(midIndS+1:end),-Cp(midIndS+1:end),'ks',...                 
-                'MarkerFaceColor','b');
-legend([pXu,pXl,pVu,pVl],...                                            % Show legend
-           {'XFOIL Upper','XFOIL Lower','Ours Upper','Ours Lower'});
-xlabel('X_C')
-ylabel('Cp')
+end

@@ -1,9 +1,9 @@
 NACA 23021
 PPAR
-N 200
+N 180
 
 
 PSAV airfoil.txt
 OPER
-Alfa 15
+Alfa 5
 CPWR Cp.txt
