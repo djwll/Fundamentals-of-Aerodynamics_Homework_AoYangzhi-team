@@ -1,26 +1,26 @@
 %%调用函数，导入数据
 AoA = 0;
 nodes = 100:10:100+9*10;
-figure("Name","SPM")
-for i = 1:1:9
-    [X_0,Y_0,Cp_0,XB,YB] = NACA23021_Input(nodes(i),AoA);
-    [Cp,XC] = COMPUTE_SPM_Cp(X_0,Y_0,Cp_0,XB,YB,AoA);
-    subplot(3,3,i)
-    subtitle(['控制点数为',num2str(nodes(i))])
-    My_plot(X_0,Cp_0,Cp,XC)
-end
-figure("Name","VPM")
-for i = 1:1:9
-    [X_0,Y_0,Cp_0,XB,YB] = NACA23021_Input(nodes(i),AoA);
-    [Cp,XC] = COMPUTE_VPM_Cp(X_0,Y_0,Cp_0,XB,YB,AoA);
-    subplot(3,3,i)
-    subtitle(['控制点数为',num2str(nodes(i))])
-    My_plot(X_0,Cp_0,Cp,XC)
-end
+% figure("Name","SPM")
+% for i = 1:1:9
+%     [X_0,Y_0,Cp_0,XB,YB] = NACA23021_Input(nodes(i),AoA);
+%     [Cp,XC] = COMPUTE_SPM_Cp(XB,YB,AoA);
+%     subplot(3,3,i)
+%     subtitle(['控制点数为',num2str(nodes(i))])
+%     My_plot(X_0,Cp_0,Cp,XC)
+% end
+% figure("Name","VPM")
+% for i = 1:1:9
+%     [X_0,Y_0,Cp_0,XB,YB] = NACA23021_Input(nodes(i),AoA);
+%     [Cp,XC] = COMPUTE_VPM_Cp(X_0,Y_0,Cp_0,XB,YB,AoA);
+%     subplot(3,3,i)
+%     subtitle(['控制点数为',num2str(nodes(i))])
+%     My_plot(X_0,Cp_0,Cp,XC)
+% end
 figure("Name","SPVP")
 for i = 1:1:9
     [X_0,Y_0,Cp_0,XB,YB] = NACA23021_Input(nodes(i),AoA);
-    [Cp,XC] = COMPUTE_SPVP_Cp(X_0,Y_0,Cp_0,XB,YB,AoA);
+    [Cp,XC] = COMPUTE_SPVP_Cp(XB,YB,AoA);
     subplot(3,3,i)
     subtitle(['控制点数为',num2str(nodes(i))])
     My_plot(X_0,Cp_0,Cp,XC)

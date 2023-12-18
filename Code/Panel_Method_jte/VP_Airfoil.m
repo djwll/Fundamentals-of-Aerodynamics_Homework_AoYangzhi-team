@@ -171,7 +171,7 @@ end
 
 % Satisfy the Kutta condition
 pct    = 100;                                                               % Panel replacement percentage
-panRep = floor((pct/100)*numPan);                                           % Replace this panel with Kutta condition eqn.
+panRep = floor((pct/100)*numPanel);                                           % Replace this panel with Kutta condition eqn.
 if (panRep == 0)                                                            % If we specify the first panel
     panRep = 1;                                                             % Make sure the index is not zero
 end

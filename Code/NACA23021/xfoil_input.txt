@@ -5,5 +5,5 @@ N 180
 
 PSAV airfoil.txt
 OPER
-Alfa 5
+Alfa 0
 CPWR Cp.txt
