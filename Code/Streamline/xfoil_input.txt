@@ -1,0 +1,9 @@
+NACA 23021
+PPAR
+N 200
+
+
+PSAV airfoil.txt
+OPER
+Alfa 0
+CPWR Cp.txt

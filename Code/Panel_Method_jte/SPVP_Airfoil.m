@@ -67,12 +67,12 @@ AoA  = 0;                                                                   % An
 NACA = '2412';                                                              % NACA airfoil to load [####(#)]
 
 % Plotting flags
-flagPlot = [0;          % Airfoil with panel normal vectors
-            0;          % Geometry boundary pts, control pts, first panel, second panel
+flagPlot = [1;          % Airfoil with panel normal vectors
+            1;          % Geometry boundary pts, control pts, first panel, second panel
             1;          % Cp vectors at airfoil surface panels
             1;          % Pressure coefficient comparison (XFOIL vs. SPVP)
             0;          % Airfoil streamlines
-            0];         % Pressure coefficient contour
+            1];         % Pressure coefficient contour
 
 %% XFOIL - CREATE/LOAD AIRFOIL
 
@@ -329,7 +329,8 @@ if (flagPlot(1) == 1)
     xlim('auto');                                                           % Set X-axis limits to auto
     ylim('auto');                                                           % Set Y-axis limits to auto
     axis equal;                                                             % Set axes equal
-    zoom reset;                                                             % Reset zoom
+    zoom reset;                
+    % Reset zoom
 end
 
 % FIGURE: Geometry with the following indicated:
