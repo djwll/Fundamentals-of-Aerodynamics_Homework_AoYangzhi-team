@@ -1,148 +1,78 @@
 function[CL,CM] = COMPUTE_CL_CM(angle_input)
 % 使用Xfoil导入数据
-
-
-NACA = '23021';
-nodes = '200';
-AoA = '15';
-save_airfoil = 'airfoil.txt';
-save_Cp = 'Cp.txt';
-if exist(save_airfoil,'file')
-    delete(save_airfoil);
-end
-if exist(save_Cp,'file')
-    delete(save_Cp);
-end
-
-fid = fopen('xfoil_input.txt','w');
-
-fprintf(fid,['NACA ' NACA '\n']);
-fprintf(fid,'PPAR\n');
-fprintf(fid,['N ' nodes '\n']);
-fprintf(fid,'\n\n');
-fprintf(fid,['PSAV ' save_airfoil '\n']);
-
-%load Xfoil Cp
-fprintf(fid,'OPER\n');
-fprintf(fid,['Alfa ' AoA '\n']);
-fprintf(fid,['CPWR ' save_Cp]);
-
-
-fclose(fid);
-
-cmd = 'xfoil.exe < xfoil_input.txt';
-[status,result] = system(cmd);
-
-%转化为自己的数据
-a = load(save_airfoil);
-saveFLnmCP = save_Cp;
-fidCp = fopen(saveFLnmCP);
-
-dataBuffer = textscan(fidCp,'%f %f %f','CollectOutput',3, ...
-    'Delimiter','','HeaderLines',3);
-fclose(fidCp);
-
-X_0 = dataBuffer{1,1}(:,1);
-Y_0 = dataBuffer{1,1}(:,2);
-Cp_0 = dataBuffer{1,1}(:,3);
-
-XB = flip(a(:,1));
-YB = flip(a(:,2));
-
-%% 进行相关计算
-% 边界点和板子数量
-numPts = length(XB);                                                        
-numPan = numPts - 1; 
-Vinf = 1;
+nodes  = 200;
 AoA = angle_input;
+[X_0,Y_0,XB,YB,Cp_0] = NACA23021_Input(nodes,AoA);
+%获取翼型的几何特征
+numB = length(XB);
+numPanel = numB - 1;
+%初始化变量
+XC = zeros(numPanel,1);
+YC = zeros(numPanel,1);
+S = zeros(numPanel,1);
+PhiD = zeros(numPanel,1);
 
-
-%初始化相关变量
-XC   = zeros(numPan,1);                                                     
-YC   = zeros(numPan,1);                                                     
-S    = zeros(numPan,1);                                                     
-phiD = zeros(numPan,1); 
-
-%计算板子的几何特征
-for i = 1:1:numPan                                                          % Loop over all panels
-    XC(i)   = 0.5*(XB(i)+XB(i+1));                                          % X-value of control point
-    YC(i)   = 0.5*(YB(i)+YB(i+1));                                          % Y-value of control point
-    dx      = XB(i+1)-XB(i);                                                % Change in X between boundary points
-    dy      = YB(i+1)-YB(i);                                                % Change in Y between boundary points
-    S(i)    = (dx^2 + dy^2)^0.5;                                            % Length of the panel
-    phiD(i) = atan2d(dy,dx);                                                % Angle of the panel (positive X-axis to inside face) [deg]
-    if (phiD(i) < 0)                                                        % Make all panel angles positive [deg]
-        phiD(i) = phiD(i) + 360;
+for i = 1:1:numPanel
+    XC(i) = 0.5*(XB(i)+XB(i+1));
+    YC(i) = 0.5*(YB(i)+YB(i+1));
+    dx = XB(i+1)-XB(i);
+    dy = YB(i+1)-YB(i);
+    S(i) = (dx^2+dy^2)^0.5;
+    PhiD(i) = atan2d(dy,dx);
+    if (PhiD(i) < 0)                                                       
+        PhiD(i) = PhiD(i) + 360;
     end
 end
 
-
-% 将攻角考虑进去
-deltaD             = phiD + 90;                                             % Angle from positive X-axis to outward normal vector [deg]
-betaD              = deltaD - AoA;                                          % Angle between freestream vector and outward normal vector [deg]
+% β为自由来流与法向量的夹角、δ为X正轴与panel内部的夹角
+deltaD             = PhiD + 90;                                             
+betaD              = deltaD - AoA;                                          
 betaD(betaD > 360) = betaD(betaD > 360) - 360; 
+
 % 将角度转化为弧度制
-phi  = phiD.*(pi/180);                                                      % Convert from [deg] to [rad]
+Phi  = PhiD.*(pi/180);                                                  
 beta = betaD.*(pi/180); 
 
-% 计算相关的积分项,调取函数，得到IJ，KL
-[I,J] = COMPUTE_IJ_SPM(XC,YC,XB,YB,phi,S);                                  % Call COMPUTE_IJ_SPM function (Refs [2] and [3])
-[K,L] = COMPUTE_KL_VPM(XC,YC,XB,YB,phi,S); 
-
-
-%计算A矩阵
-A = zeros(numPan,numPan);                                                   % Initialize the A matrix
-for i = 1:1:numPan                                                          % Loop over all i panels
-    for j = 1:1:numPan                                                      % Loop over all j panels
-        if (j == i)                                                         % If the panels are the same
-            A(i,j) = pi;                                                    % Set A equal to pi
-        else                                                                % If panels are not the same
-            A(i,j) = I(i,j);                                                % Set A equal to I
+%计算积分项
+[K,L] = Calculate_VPM_KL(XB,YB,XC,YC,S,Phi);
+A = zeros(numPanel,numPanel);
+for i = 1:1:numPanel
+    for j = 1:1:numPanel
+        if(i == j)
+            A(i,j) = 0;
+        else
+            A(i,j) = -K(i,j);
         end
     end
 end
+b = -2*pi*Vinf*cos(Beta);
 
-% Right column of A matrix
-for i = 1:1:numPan                                                          % Loop over all i panels (rows)
-    A(i,numPan+1) = -sum(K(i,:));                                           % Add gamma term to right-most column of A matrix
-end
+% 加入库塔条件
+Ku_Row = numPanel + 1;
+A(Ku_Row,:) = 0;
+A(Ku_Row,1) = 1;
+A(Ku_Row,numPanel) = 1;
+b(Ku_Row) = 0; 
+%计算Gamma值
+Gamma = A\b;
 
-% Bottom row of A matrix (Kutta condition)
-for j = 1:1:numPan                                                          % Loop over all j panels (columns)
-    A(numPan+1,j) = (J(1,j) + J(numPan,j));                                 % Source contribution of Kutta condition equation
-end
-A(numPan+1,numPan+1) = -sum(L(1,:) + L(numPan,:)) + 2*pi; 
-
-%计算b向量
-b = zeros(numPan,1);                                                        % Initialize the b array
-for i = 1:1:numPan                                                          % Loop over all i panels (rows)
-    b(i) = -Vinf*2*pi*cos(beta(i));                                         % Compute RHS array
-end
-
-%加入b的库塔条件
-b(numPan+1) = -Vinf*2*pi*(sin(beta(1)) + sin(beta(numPan))); 
-%计算结果
-resArr = A\b;
-
-%将λ和Γ分离出来
-lambda = resArr(1:end-1);                                                   % All panel source strenths
-gamma  = resArr(end); 
+Cp = zeros(numPanel,1);
+Vt = zeros(numPanel,1);
+% 计算切向速度Vt和压力系数Cp
+for i = 1:1:numPanel
+    My_sum = 0;
+    for j = 1:1:numPanel
+         My_sum = My_sum - Gamma(j)/(2*pi)*L(i,j);
+    end
+    Vt(i) = Vinf*sin(Beta(i))+My_sum+Gamma(i)/2;
+    Cp(i) = 1-(Vt(i)/Vinf)^2;
+end 
 
 
-%计算速度和压力系数
-Vt = zeros(numPan,1);                                                       % Initialize tangential velocity
-Cp = zeros(numPan,1);                                                       % Initialize pressure coefficient
-for i = 1:1:numPan
-    term1 = Vinf*sin(beta(i));                                              % Uniform flow term
-    term2 = (1/(2*pi))*sum(lambda.*J(i,:)');                                % Source panel terms when j is not equal to i
-    term3 = gamma/2;                                                        
-    term4 = -(gamma/(2*pi))*sum(L(i,:));                                    
-    
-    Vt(i) = term1 + term2 + term3 + term4;                                  
-    Cp(i) = 1-(Vt(i)/Vinf)^2;                                               
-end
+% 分别使用压强法和茹科夫斯基定理计算升力系数
+%压强积分法
 CN=-Cp.*S.*sin(beta);
 CA=-Cp.*S.*cos(beta);
-CL = sum(CN.*cosd(AoA)) - sum(CA.*sind(AoA)); 
-CM = sum(Cp.*XC.*S.*cos(phi)); 
-end
+CL = sum(CN.*cosd(AoA)) - sum(CA.*sind(AoA));  
+CM = sum(Cp.*(XC).*S.*cos(Phi));
+

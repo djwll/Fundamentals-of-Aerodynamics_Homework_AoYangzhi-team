@@ -3,7 +3,7 @@
 %Puncton:利用面源法实现Cp的计算
 %People:敖洋智
 %*************************************************
-function Cp = SPM_Cp(nodes,AoA)
+function [X_0,Y_0,XB,YB,Cp_0,Cp,XC] = SPM_Cp(nodes,AoA)
 %% 利用xfoil导入XB,YB,以及参考Cp
 Vinf = 1;
 [X_0,Y_0,XB,YB,Cp_0] = NACA23021_Input(nodes,AoA);

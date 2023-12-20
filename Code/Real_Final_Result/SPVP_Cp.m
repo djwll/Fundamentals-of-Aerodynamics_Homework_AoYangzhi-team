@@ -1,9 +1,10 @@
 %************************************************
 %Time:2023年12月15日
-%Puncton:利用面源法实现Cp的计算
+%Puncton:利用面源法和涡面法结合法实现Cp的计算
 %People:敖洋智
 %*************************************************
-function Cp = SPM_Cp(nodes,AoA)
+
+function [X_0,Y_0,XB,YB,Cp_0,Cp,XC] = SPVP_Cp(nodes,AoA)
 %% 利用xfoil导入XB,YB,以及参考Cp
 Vinf = 1;
 [X_0,Y_0,XB,YB,Cp_0] = NACA23021_Input(nodes,AoA);
@@ -39,9 +40,9 @@ Beta = betaD.*(pi/180);
 
 %计算积分项
 [I,J] = Calculate_SPM_IJ(XB,YB,XC,YC,S,Phi);
+[K,L] = Calculate_VPM_KL(XB,YB,XC,YC,S,Phi);
 
-%计算A矩阵并加入库塔条件
-
+%计算A矩阵
 A = zeros(numPanel,numPanel);
 for i = 1:1:numPanel
     for j = 1:1:numPanel
@@ -52,26 +53,37 @@ for i = 1:1:numPanel
         end
     end
 end
+for j = 1:1:numPanel 
+    A(numPanel + 1,j)  = J(1,j) + J(numPanel,j);
+end
+A(numPanel + 1,numPanel + 1) = 2*pi - sum(L(1,:))-sum(L(numPanel,:));
 b = -2*pi*Vinf*cos(Beta);
-%加入库塔条件
-Ku_Row = numPanel;
-A(Ku_Row,:) = 0;
-A(Ku_Row,1) = 1;
-A(Ku_Row,end) = 1;
-b(Ku_Row) = 0;
-Lambda = A\b;
-Cp = zeros(numPanel,1);
-Vt = zeros(numPanel,1);
-% 计算切向速度Vt和压力系数Cp
+b(numPanel+1) = -2*pi*Vinf*(sin(Beta(1)) + sin(Beta(end)));
 for i = 1:1:numPanel
-    My_sum = 0;
-    for j = 1:1:numPanel
-         My_sum = My_sum + Lambda(j)/(2*pi)*J(i,j);
+    My_sum_3 = 0;
+    for j= 1:1:numPanel
+        if(i~=j)
+        My_sum_3 = My_sum_3 - K(i,j);
+        end
     end
-    Vt(i) = Vinf*sin(Beta(i))+My_sum;
-    Cp(i) = 1-(Vt(i)/Vinf)^2;
-end 
+    A(i,numPanel+1) = My_sum_3;
+end
+Result = A\b;
+Lambda = Result(1:end-1);
+Gamma = Result(end);
 
+%计算切向速度
+Vt = zeros(numPanel,1);
+Cp = zeros(numPanel,1);
+for i = 1:1:numPanel
+    My_sum_1 = 0;
+    My_sum_2 = 0;
+    for j = 1:1:numPanel
+         My_sum_1 = My_sum_1 + Lambda(j)/(2*pi)*J(i,j);
+         My_sum_2 = My_sum_2 - Gamma/(2*pi)*L(i,j);
+    end
+    Vt(i) = Vinf*sin(Beta(i))+ My_sum_2 + My_sum_1 + Gamma/2;
+    Cp(i) = 1 - (Vt(i)/Vinf)^2;
 end
 
-
+end

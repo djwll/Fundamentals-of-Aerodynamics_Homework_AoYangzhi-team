@@ -1,11 +1,12 @@
-%************************************************
-%Time:2023年12月15日
-%Puncton:利用面源法实现Cp的计算
+%**************************************************
+%Time:2023年12月20日
+%Puncton:实现NACA23021的压力分布系数的计算，使用面源法SPM
 %People:敖洋智
 %*************************************************
-function Cp = SPM_Cp(nodes,AoA)
-%% 利用xfoil导入XB,YB,以及参考Cp
+
+%利用xfoil导入XB,YB,以及参考Cp
 Vinf = 1;
+AoA = 20;
 [X_0,Y_0,XB,YB,Cp_0] = NACA23021_Input(nodes,AoA);
 %获取翼型的几何特征
 numB = length(XB);
@@ -71,7 +72,20 @@ for i = 1:1:numPanel
     Vt(i) = Vinf*sin(Beta(i))+My_sum;
     Cp(i) = 1-(Vt(i)/Vinf)^2;
 end 
+%%画图
 
-end
-
-
+    cla;hold on ; grid on;
+    set(gcf,'color','White');
+    set(gca,'Fontsize',12);                                             
+    midIndX = floor(length(Cp_0)/2);                                    
+    midIndS = floor(length(Cp)/2);                                          
+    pXu = plot(X_0(1:midIndX),-Cp_0(1:midIndX),'b-','LineWidth',2);   
+    pXl = plot(X_0(midIndX+1:end),-Cp_0(midIndX+1:end),'r-',...        
+                        'LineWidth',2);
+    pVl = plot(XC(1:midIndS),-Cp(1:midIndS),'ks','MarkerFaceColor','r');     
+    pVu = plot(XC(midIndS+1:end),-Cp(midIndS+1:end),'ks',...                 
+                    'MarkerFaceColor','b');
+    legend([pXu,pXl,pVu,pVl],...                                            % Show legend
+               {'XFOIL Upper','XFOIL Lower','Ours Upper','Ours Lower'});
+    xlabel('X_C')
+    ylabel('Cp')

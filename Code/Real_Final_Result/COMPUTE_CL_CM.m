@@ -1,11 +1,8 @@
-%************************************************
-%Time:2023年12月15日
-%Puncton:利用面源法实现Cp的计算
-%People:敖洋智
-%*************************************************
-function Cp = SPM_Cp(nodes,AoA)
-%% 利用xfoil导入XB,YB,以及参考Cp
+function[CL,CM] = COMPUTE_CL_CM(angle_input)
+% 使用Xfoil导入数据
+nodes  = 200;
 Vinf = 1;
+AoA = angle_input;
 [X_0,Y_0,XB,YB,Cp_0] = NACA23021_Input(nodes,AoA);
 %获取翼型的几何特征
 numB = length(XB);
@@ -38,40 +35,45 @@ Phi  = PhiD.*(pi/180);
 Beta = betaD.*(pi/180); 
 
 %计算积分项
-[I,J] = Calculate_SPM_IJ(XB,YB,XC,YC,S,Phi);
-
-%计算A矩阵并加入库塔条件
-
+[K,L] = Calculate_VPM_KL(XB,YB,XC,YC,S,Phi);
 A = zeros(numPanel,numPanel);
 for i = 1:1:numPanel
     for j = 1:1:numPanel
         if(i == j)
-            A(i,j) = pi;
+            A(i,j) = 0;
         else
-            A(i,j) = I(i,j);
+            A(i,j) = -K(i,j);
         end
     end
 end
 b = -2*pi*Vinf*cos(Beta);
-%加入库塔条件
-Ku_Row = numPanel;
+
+% 加入库塔条件
+Ku_Row = numPanel + 1;
 A(Ku_Row,:) = 0;
 A(Ku_Row,1) = 1;
-A(Ku_Row,end) = 1;
-b(Ku_Row) = 0;
-Lambda = A\b;
+A(Ku_Row,numPanel) = 1;
+b(Ku_Row) = 0; 
+%计算Gamma值
+Gamma = A\b;
+
 Cp = zeros(numPanel,1);
 Vt = zeros(numPanel,1);
 % 计算切向速度Vt和压力系数Cp
 for i = 1:1:numPanel
     My_sum = 0;
     for j = 1:1:numPanel
-         My_sum = My_sum + Lambda(j)/(2*pi)*J(i,j);
+         My_sum = My_sum - Gamma(j)/(2*pi)*L(i,j);
     end
-    Vt(i) = Vinf*sin(Beta(i))+My_sum;
+    Vt(i) = Vinf*sin(Beta(i))+My_sum+Gamma(i)/2;
     Cp(i) = 1-(Vt(i)/Vinf)^2;
 end 
 
-end
 
+% 分别使用压强法和茹科夫斯基定理计算升力系数
+%压强积分法
+CN=-Cp.*S.*sin(Beta);
+CA=-Cp.*S.*cos(Beta);
+CL = sum(CN.*cosd(AoA)) - sum(CA.*sind(AoA));  
+CM = sum(Cp.*(XC).*S.*cos(Phi));
 
